@@ -4,25 +4,19 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class TestClass {
-    static final private int nThreads = 10;
-    public static  void main(String[] args)
+    public static  void computePrimeNumber(String arg, int nThreads)
     {
         int N;
         ExecutorService threadExecutor;
         Runnable fst_task;
-        if(args.length < 1) {
-            System.out.println("Numero di argomenti errati");
-            return;
-        }
-        N = getMax(args[0]);
+        N = strToInt(arg);
         fst_task = new Crivello_Eratostene(3);
         threadExecutor = Executors.newFixedThreadPool(nThreads);
-        boolean[] aux = initArray(N);
-        Crivello_Eratostene.initExecutor(aux, N, threadExecutor);
+        Crivello_Eratostene.initExecutor(N, threadExecutor);
         threadExecutor.execute(fst_task);
     }
 
-    private static Integer getMax(String num)
+    private static Integer strToInt(String num)
     {
         Integer N = 0;
         try {
@@ -39,12 +33,4 @@ public class TestClass {
         return N;
     }
 
-    private static boolean[] initArray(int n)
-    {
-        boolean[] ar = new boolean[n];
-        ar[1] = ar[2]=true;
-        for (int i = 3 ; i<n ; i+=2)
-            ar[i] = true;
-        return ar;
-    }
 }

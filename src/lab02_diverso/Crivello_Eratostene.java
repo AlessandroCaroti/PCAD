@@ -3,27 +3,45 @@ package lab02_diverso;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Crivello_Eratostene implements Runnable{
+    private int myNum;
+    private int prev_primeNum;
+
+    static private boolean isRunning;
     static private int limit;
     static private int sqrt_limit;
     static private boolean[] is_prime;
     static private AtomicInteger cont = new AtomicInteger(1);
     static private ExecutorService threadExecutor;
-    static long start_time;
-    static long end_time;
-    private int prev_primeNum;
-    private int myNum;
+    static private long start_time;
+    static private long end_time;
+    static private final Lock lock = new ReentrantLock();
+    static private final Condition cond = lock.newCondition();
 
-    Crivello_Eratostene(int i)
+    Crivello_Eratostene(int i) { prev_primeNum = i; }
+
+    static void initExecutor(Integer n, ExecutorService e)
     {
-        prev_primeNum = i;
+        is_prime = initArray(n);
+        limit = n;
+        sqrt_limit = (int) Math.sqrt(limit);
+        cont.set(1);
+        isRunning = true;
+        threadExecutor = e;
+        start_time = System.currentTimeMillis();
     }
 
-    private void algorithm()
+    private static boolean[] initArray(int n)
     {
-        for (int i = myNum * myNum; i<is_prime.length;i+=myNum)
-            is_prime[i] = false;
+        boolean[] ar = new boolean[n];
+        ar[1] = ar[2]=true;
+        for (int i = 3 ; i<n ; i+=2)
+            ar[i] = true;
+        return ar;
     }
 
     @Override
@@ -37,40 +55,22 @@ public class Crivello_Eratostene implements Runnable{
             Runnable nextWorker = new Crivello_Eratostene(prev_primeNum + 1);
             threadExecutor.execute(nextWorker);
             algorithm();
-        }
-        else {
+        } else {
             countRemaining();
             end_time = System.currentTimeMillis();
-//            printNumbers();
-            printCount();
             StopPool();
+            lock.lock();
+            isRunning = false;
+            cond.signal();
+            lock.unlock();
+            System.out.println("TASK FINITO:\nlimit: "+limit+"\ncount: "+cont.get()+"\nExecutionTime: "+getExecutionTime()+"ms");
         }
     }
 
-    static private void printCount()
+    private void algorithm()
     {
-        System.out.println("\nFind " + cont.get() + " prime numbers");
-        //stampa del tempo di escuzione
-        long res = (end_time-start_time);
-        long res_sec = TimeUnit.MILLISECONDS.toSeconds(res);
-        long res_mill = res - 1000*res_sec;
-        System.out.println("\nExecution time: " +res_sec+"sec "+ res_mill+"ms");
-    }
-    static private void printNumbers()
-    {
-        for (int i = 0; i <is_prime.length;i++)
-            if(is_prime[i])
-                System.out.print(i + " ");
-    }
-
-    static void initExecutor(boolean[] b, Integer n, ExecutorService e)
-    {
-        threadExecutor = e;
-        is_prime = b;
-        limit = n;
-        double d = n.doubleValue();
-        sqrt_limit = (int) Math.sqrt((d));
-        start_time = System.currentTimeMillis();
+        for (int i = myNum * myNum; i<is_prime.length;i+=myNum)
+            is_prime[i] = false;
     }
 
     private void countRemaining()
@@ -85,20 +85,55 @@ public class Crivello_Eratostene implements Runnable{
 
     private void StopPool()
     {
-        threadExecutor.shutdown(); // Disable new tasks from being submitted
+        threadExecutor.shutdown();
         try {
-            // Wait a while for existing tasks to terminate
             if (!threadExecutor.awaitTermination(2, TimeUnit.SECONDS)) {
                 threadExecutor.shutdownNow(); // Cancel currently executing tasks
-                // Wait a while for tasks to respond to being cancelled
                 if (!threadExecutor.awaitTermination(10, TimeUnit.SECONDS))
                     System.err.println("Pool did not terminate");
             }
         } catch (InterruptedException ie) {
-            // (Re-)Cancel if current thread also interrupted
             threadExecutor.shutdownNow();
-            // Preserve interrupt status
             Thread.currentThread().interrupt();
         }
     }
+
+    static private void waitTerminatio(){
+        try {
+            lock.lock();
+            while (isRunning)
+                    cond.await();
+            lock.unlock();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    //GETTER METHOD
+    static public int getLimit() { return limit;}
+    static int getCount() {waitTerminatio(); return cont.get();}
+    static long getExecutionTime() {waitTerminatio(); return end_time-start_time;}
+    static String getExecutionTimeString(boolean min, boolean sec)
+    {
+        long res = getExecutionTime();
+        long res_min = TimeUnit.MILLISECONDS.toMinutes(res);
+        long res_sec = TimeUnit.MILLISECONDS.toSeconds(res);
+        long res_mill = res - 1000*res_sec;
+        if(min)
+        {
+            return res_min + " min, "+res_sec+" sec, " + res_mill + " ms";
+        }
+        else if(sec)
+            return res_min*60+res_sec+" sec," + res_mill + " ms";
+        return res+" ms";
+    }
+
+    static private void printNumbers()
+    {
+        for (int i = 0; i <is_prime.length;i++)
+            if(is_prime[i])
+                System.out.print(i + " ");
+    }
+
+
 }
