@@ -17,6 +17,7 @@ public class ClientLab6 implements ClentInterface{
             Registry r = LocateRegistry.getRegistry("130.251.36.239",9667);
             System.err.println("Registro trovato");
 
+            //
             ClientLab6 client = new ClientLab6();
             ClentInterface stubClient = (ClentInterface) UnicastRemoteObject.exportObject(client, 0);
             r.rebind("ClientReg", stubClient);
