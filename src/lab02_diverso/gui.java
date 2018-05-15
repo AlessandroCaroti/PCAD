@@ -4,6 +4,7 @@ import javax.swing.*;
 import javax.swing.text.AbstractDocument;
 import java.awt.*;
 import java.util.concurrent.ExecutorService;
+import java.awt.Cursor;
 
 public class gui {
     private JPanel panelMain;
@@ -40,6 +41,7 @@ public class gui {
         });
         stopBtn.addActionListener(e -> {
             activeStart();
+
         });
 
     }
@@ -67,7 +69,6 @@ public class gui {
         frame.setResizable(false);
         frame.setVisible(true);
         frame.setBounds(800, 100, 600, 300);
-
 
     }
 

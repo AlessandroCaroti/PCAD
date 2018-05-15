@@ -10,7 +10,7 @@ public class ConnectionPool {
 
     ConnectionPool()
     {
-        pool = Executors.newCachedThreadPool();
+        pool = Executors.newCachedThreadPool()  ;
         stopped = false;
         cache = new ConcurrentHashMap<>();
     }
