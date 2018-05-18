@@ -17,13 +17,19 @@ public class ServerLab6 implements ServerInterface {
 
     public static void main(String[] args) {
         try {
+            /*
             InetAddress inetAddress = InetAddress.getLocalHost();
             System.out.println("IP Address:- " + inetAddress.getHostAddress());
-            System.out.println("Host Name:- " + inetAddress.getHostName());
+            System.out.println("Host Name:- " + inetAddress.getHostName());*/
+            //System.out.println(System.getProperty("user.dir"));
 
-            System.setProperty("java.security.policy", "file:./server.policy");
+
+
+
+            System.setProperty("java.security.policy", "file:./sec.policy");
             //System.setProperty("java.rmi.server.codebase", "file:${workspace_loc}/MyServer/");
             System.setProperty ("java.rmi.server.codebase", "http://130.251.36.239/hello.jar");
+            if(System.getSecurityManager() == null) System.setSecurityManager(new SecurityManager());
             System.setProperty("java.rmi.server.hostname", "localhost");
             Registry r;
             try{

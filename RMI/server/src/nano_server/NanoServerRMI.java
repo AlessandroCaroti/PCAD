@@ -38,6 +38,7 @@ public class NanoServerRMI implements NanoSheredRMI {
 
     @Override
     public String sayHello(String name) throws RemoteException {
+
         if(name!=null)
             return "hello!"+name;
         return "hello!";
